@@ -52,11 +52,23 @@ export const getBalance = async (
     }),
     blockNumber,
   });
-  const holders = addresses.map((addr, index) => {
-    const balance = result[index].result as bigint;
-    totalBalance += balance;
-    return { address: addr, effective_balance: balance.toString() };
-  });
-  console.log("totalBalance: ", totalBalance);
-  return holders;
+  const holders = result
+    .map((res, index) => {
+      const balance = res.result as bigint;
+      if (res.status !== "failure") {
+        totalBalance += balance;
+      } else {
+        console.log("error: ", res.error);
+        return {};
+      }
+      return {
+        address: addresses[index],
+        effective_balance: balance.toString(),
+      };
+    })
+    .filter(
+      (holder) => holder.effective_balance && holder.effective_balance !== "0"
+    );
+
+  return holders as Holder[];
 };
