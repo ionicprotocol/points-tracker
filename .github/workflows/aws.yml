@@ -13,7 +13,7 @@ jobs:
     env:
       AWS_DEFAULT_REGION: us-east-1
       ECS_CLUSTER_NAME: points-tracker
-      ECS_SERVICE_NAME: points-tracker-service
+      ECS_SERVICE_NAME: points-tracker
 
     steps:
       - name: Checkout Git Repository
