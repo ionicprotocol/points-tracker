@@ -1,0 +1,61 @@
+name: Deploy to ECS
+
+on:
+  workflow_dispatch 
+  # push:
+  #   branches:
+  #     - feature/prodcode
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_DEFAULT_REGION: us-east-1
+      ECS_CLUSTER_NAME: points-tracker
+      ECS_SERVICE_NAME: points-tracker-service
+
+    steps:
+      - name: Checkout Git Repository
+        uses: actions/checkout@v2
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Configure AWS Credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY && aws configure set default.region $AWS_DEFAULT_REGION
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+          sudo usermod -aG docker $USER
+    
+      - name: Build Docker Image
+        # working-directory: airdrop-backend
+        run: |
+          docker build -t points-tracker -f Dockerfile .
+          docker images
+
+      - name: Push Image to ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 058264122535.dkr.ecr.us-east-1.amazonaws.com
+          docker tag points-tracker:latest 058264122535.dkr.ecr.us-east-1.amazonaws.com/points-tracker:latest
+          docker push 058264122535.dkr.ecr.us-east-1.amazonaws.com/points-tracker:latest
+
+      - name: Update Infra with latest deployment
+        run: |
+          aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
+          
+      - name: Finalize
+        if: steps.update_infra.outcome == 'success'
+        run: echo "Deployment completed successfully" 
