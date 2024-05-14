@@ -1,4 +1,4 @@
-# weeth-tracker
+# points-tracker
 
 To install dependencies:
 
