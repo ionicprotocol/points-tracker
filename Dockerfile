@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
-
+COPY . .
 RUN curl -fsSL https://bun.sh/install | bash
 # Install dependencies
 RUN bun install
