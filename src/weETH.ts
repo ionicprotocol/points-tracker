@@ -1,18 +1,15 @@
-import { createPublicClient, getContract, http } from "viem";
-import { mode } from "viem/chains";
+import { http } from "viem";
 import { ionWeETHAbi } from "./ionWeETHAbi";
+import { createConfig, readContracts } from "@wagmi/core";
+import { mode } from "@wagmi/core/chains";
 
 const ionweETH = "0xA0D844742B4abbbc43d8931a6Edb00C56325aA18";
 
-const client = createPublicClient({
-  chain: mode,
-  transport: http(),
-});
-
-const contract = getContract({
-  address: ionweETH,
-  abi: ionWeETHAbi,
-  client,
+export const config = createConfig({
+  chains: [mode],
+  transports: {
+    [mode.id]: http(),
+  },
 });
 
 type Holder = { address: string; effective_balance: string };
@@ -40,30 +37,26 @@ export const getBalance = async (
       console.log("nextPageParams: ", nextPageParams);
       console.log("fetching next page...");
     }
-    console.log("addresses: ", addresses);
   }
-
-  const exchangeRate = (await contract.read.exchangeRateCurrent()) as bigint;
-  console.log("exchangeRate: ", exchangeRate);
 
   let totalBalance = 0n;
 
-  let i = 0;
-  const holders: Holder[] = [];
-  for (const address of addresses) {
-    const balance = (await contract.read.balanceOfUnderlying([address], {
-      blockNumber,
-    })) as bigint;
-    console.log(`${i++}/${addresses.length}`);
-    console.log(
-      `Address: ${address}, Balance: ${
-        // (tokenBalance / exchangeRate) * BigInt(1e18)
-        balance
-      }`
-    );
+  const result = await readContracts(config, {
+    contracts: addresses.map((addr) => {
+      return {
+        address: ionweETH,
+        abi: ionWeETHAbi as any,
+        functionName: "balanceOfUnderlying",
+        args: [addr],
+      };
+    }),
+    blockNumber,
+  });
+  const holders = addresses.map((addr, index) => {
+    const balance = result[index].result as bigint;
     totalBalance += balance;
-    holders.push({ address, effective_balance: balance.toString() });
-  }
+    return { address: addr, effective_balance: balance.toString() };
+  });
   console.log("totalBalance: ", totalBalance);
   return holders;
 };

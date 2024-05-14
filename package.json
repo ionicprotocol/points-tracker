@@ -15,7 +15,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@wagmi/core": "^2.9.7",
     "elysia": "^1.0.20",
-    "viem": "^2.9.28"
+    "viem": "2.x"
   }
 }
