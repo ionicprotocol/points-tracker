@@ -1,10 +1,10 @@
 name: Deploy to ECS
 
 on:
-  workflow_dispatch 
-  # push:
-  #   branches:
-  #     - feature/prodcode
+  # workflow_dispatch 
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
