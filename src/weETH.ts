@@ -1,9 +1,7 @@
-import { http } from "viem";
-import { ionWeETHAbi } from "./ionWeETHAbi";
+import { http, type Address } from "viem";
+import { cTokenAbi } from "./cTokenAbi";
 import { createConfig, readContracts } from "@wagmi/core";
 import { mode } from "@wagmi/core/chains";
-
-const ionweETH = "0xA0D844742B4abbbc43d8931a6Edb00C56325aA18";
 
 export const config = createConfig({
   chains: [mode],
@@ -14,13 +12,14 @@ export const config = createConfig({
 
 type Holder = { address: string; effective_balance: string };
 export const getBalance = async (
+  asset: Address,
   blockNumber: bigint,
   addresses: string[] = []
 ): Promise<Holder[]> => {
   if (addresses.length === 0) {
     let nextPageParams;
     while (true) {
-      let url = `https://explorer.mode.network/api/v2/tokens/${ionweETH}/holders`;
+      let url = `https://explorer.mode.network/api/v2/tokens/${asset}/holders`;
       if (nextPageParams) {
         url += `?${Object.entries(nextPageParams)
           .map(([key, value]) => `${key}=${value}`)
@@ -44,8 +43,8 @@ export const getBalance = async (
   const result = await readContracts(config, {
     contracts: addresses.map((addr) => {
       return {
-        address: ionweETH,
-        abi: ionWeETHAbi as any,
+        address: asset,
+        abi: cTokenAbi as any,
         functionName: "balanceOfUnderlying",
         args: [addr],
       };

@@ -1,4 +1,4 @@
-export const ionWeETHAbi = [
+export const cTokenAbi = [
   {
     type: "function",
     name: "_becomeImplementation",

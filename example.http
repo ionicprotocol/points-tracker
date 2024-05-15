@@ -2,6 +2,10 @@ GET http://localhost:3000/weeth/mode/7726222?addresses=0x5A9e792143bf2708b4765C1
 
 ####
 
+GET http://localhost:3000/wrseth/mode/7726222?addresses=0x5A9e792143bf2708b4765C144451dCa54f559a19
+
+####
+
 GET http://localhost:3000/weeth/base/7726222?addresses=0x5A9e792143bf2708b4765C144451dCa54f559a19
 
 ####
