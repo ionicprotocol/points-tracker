@@ -43,7 +43,7 @@ jobs:
       - name: Build Docker Image
         # working-directory: airdrop-backend
         run: |
-          docker build -t points-tracker -f Dockerfile .
+          docker build --build-arg UNMARSHAL_API_KEY=${{ secrets.UNMARSHAL_API_KEY }}  -t  points-tracker -f Dockerfile .
           docker images
 
       - name: Push Image to ECR
