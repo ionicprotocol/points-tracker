@@ -1,5 +1,5 @@
 @server = http://localhost:3000
-@server = https://points.ionic.ninja
+# @server = https://points.ionic.ninja
 
 GET {{server}}/weeth/mode/7726222?addresses=0x5A9e792143bf2708b4765C144451dCa54f559a19
 
@@ -14,3 +14,11 @@ GET {{server}}/weeth/base/7726222?addresses=0x5A9e792143bf2708b4765C144451dCa54f
 ####
 
 GET {{server}}/weeth/mode/7726222
+
+####
+
+GET {{server}}/borrows/weeth/mode/7726222
+
+####
+
+GET {{server}}/borrows/wrseth/mode/7726222?addresses=0xce0b64da1b353545dc7427dbb4ce03838ea8677e,0x59f5f51b81e18ba2f0c904d503513593f414327d

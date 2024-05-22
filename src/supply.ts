@@ -1,5 +1,5 @@
 import { http, type Address } from "viem";
-import { cTokenAbi } from "./cTokenAbi";
+import { cTokenAbi } from "./abi/cTokenAbi";
 import { createConfig, readContracts } from "@wagmi/core";
 import { mode } from "@wagmi/core/chains";
 
