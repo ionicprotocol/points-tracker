@@ -16,7 +16,6 @@ export const getBorrowers = async (
   }
   console.log("blockNumber: ", blockNumber);
   console.log("addresses: ", addresses);
-  console.log("marshalKey", process.env.UNMARSHAL_API_KEY );
   const res = await fetch(
     `https://api.unmarshal.com/v1/parser/a640fbce-88bd-49ee-94f7-3239c6118099/execute?auth_key=${process.env.UNMARSHAL_API_KEY}`,
     {
