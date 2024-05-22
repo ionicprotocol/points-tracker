@@ -10,6 +10,7 @@ COPY . .
 RUN curl -fsSL https://bun.sh/install | bash
 # Install dependencies
 RUN bun install
+ENV UNMARSHAL_API_KEY=${UNMARSHAL_API_KEY}
 
 
 # Expose port 3000 (assuming your application runs on this port)
