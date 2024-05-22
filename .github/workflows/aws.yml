@@ -14,7 +14,7 @@ jobs:
       AWS_DEFAULT_REGION: us-east-1
       ECS_CLUSTER_NAME: points-tracker
       ECS_SERVICE_NAME: points-tracker
-
+      UNMARSHAL_API_KEY: ${{ secrets.UNMARSHAL_API_KEY }} 
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v2
