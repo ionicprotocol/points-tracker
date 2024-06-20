@@ -10,12 +10,14 @@ export const config = createConfig({
   },
 });
 
-type Holder = { address: string; effective_balance: string };
+type Holder = { address: string; effective_balance: string | undefined };
 export const getBalance = async (
   asset: Address,
   blockNumber: bigint,
   addresses: string[] = []
 ): Promise<Holder[]> => {
+  const threshold = BigInt("100000000000000"); // 0.0001 wrsETH in smallest unit (wei)
+
   if (addresses.length === 0) {
     let nextPageParams;
     while (true) {
@@ -51,6 +53,7 @@ export const getBalance = async (
     }),
     blockNumber,
   });
+
   const holders = result
     .map((res, index) => {
       const balance = res.result as bigint;
@@ -58,16 +61,23 @@ export const getBalance = async (
         totalBalance += balance;
       } else {
         console.log("error: ", res.error);
-        return {};
+        return {
+          address: addresses[index],
+          effective_balance: undefined,
+        };
       }
       return {
         address: addresses[index],
         effective_balance: balance.toString(),
       };
     })
-    .filter(
-      (holder) => holder.effective_balance && holder.effective_balance !== "0"
-    );
+    .filter((holder) => {
+      if (holder.effective_balance) {
+        const effectiveBalance = BigInt(holder.effective_balance);
+        return effectiveBalance >= threshold;
+      }
+      return false;
+    });
 
   return holders as Holder[];
 };
