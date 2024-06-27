@@ -1,28 +1,28 @@
-import { http, type Address } from "viem"; // Import necessary modules from viem library
-import { cTokenAbi } from "./abi/cTokenAbi"; // Import ABI for smart contract interaction
-import { createConfig, readContracts } from "@wagmi/core"; // Import functions from @wagmi/core
-import { mode } from "@wagmi/core/chains"; // Import blockchain mode from @wagmi/core
+import { http, type Address } from "viem"; 
+import { cTokenAbi } from "./abi/cTokenAbi"; 
+import { createConfig, readContracts } from "@wagmi/core"; 
+import { mode } from "@wagmi/core/chains"; 
 
-// Create blockchain configuration for the mode chain using HTTP transport
+
 export const config = createConfig({
   chains: [mode],
   transports: {
-    [mode.id]: http(), // Set HTTP transport for the mode chain
+    [mode.id]: http(), 
   },
 });
 
 // Define type for holder information
 type Holder = { address: string; effective_balance: string | undefined };
 
-// Function to fetch balances of token holders
+
 export const getBalance = async (
-  asset: Address, // Blockchain address of the asset
-  blockNumber: bigint, // Block number for contract interaction
-  addresses: string[] = [] // Array to store addresses of token holders
+  asset: Address, 
+  blockNumber: bigint, 
+  addresses: string[] = [] 
 ): Promise<Holder[]> => {
   const threshold = BigInt("100000000000000"); // Threshold balance in smallest unit (wei)
 
-  // Fetch all pages of token holders' addresses
+  
   if (addresses.length === 0) {
     let nextPageParams;
     while (true) {
@@ -60,7 +60,7 @@ export const getBalance = async (
   let totalBalance = 0n; // Initialize total balance as a BigInt
   
   try {
-    // Read balances from the blockchain using readContracts function
+    
     const result = await readContracts(config, {
       contracts: addresses.map((addr) => ({
         address: asset,
@@ -71,11 +71,11 @@ export const getBalance = async (
       blockNumber,
     });
     
-    // Process results to filter and map them to Holder objects
+    
     const holders = result.flatMap((res, index) => {
       const balance = res.result as bigint;
       if (res.status !== "failure") {
-        totalBalance += balance; // Add balance to total if successful
+        totalBalance += balance; 
       } else {
         console.log("Error fetching balance:", res.error);
         return { address: addresses[index], effective_balance: undefined };
@@ -84,14 +84,14 @@ export const getBalance = async (
     }).filter((holder) => {
       if (holder.effective_balance) {
         const effectiveBalance = BigInt(holder.effective_balance);
-        return effectiveBalance >= threshold; // Filter holders by threshold balance
+        return effectiveBalance >= threshold; 
       }
       return false;
     });
 
-    return holders as Holder[]; // Return filtered holders
+    return holders as Holder[]; 
   } catch (error) {
     console.error("Error reading contracts:", error);
-    return []; // Return empty array on error
+    return []; 
   }
 };
