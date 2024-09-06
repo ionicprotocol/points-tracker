@@ -7,7 +7,7 @@ const marketNames = {
 
 export const getBorrowers = async (
   asset: "wrseth" | "weeth",
-  blockNumber: number,
+  blockNumber: BigInt,
   addresses: string[] = []
 ) => {
   const marketName = marketNames[asset];

@@ -28,9 +28,13 @@ new Elysia()
           throw new Error("Invalid asset");
         }
       }
+
+      // If `addresses` is undefined, pass an empty array
       const addresses = query.addresses?.split(",");
       const blockNumber = BigInt(params.blockNumber);
-      const holders = await getBalance(asset, blockNumber, addresses);
+
+      // Pass chain as well to getBalance function
+      const holders = await getBalance(asset, blockNumber, params.chain, addresses);
       return {
         Result: holders,
       };
@@ -39,7 +43,7 @@ new Elysia()
       params: t.Object({
         asset: t.Union([t.Literal("weeth"), t.Literal("wrseth")]),
         blockNumber: t.Numeric(),
-        chain: t.Literal("mode"),
+        chain: t.Union([t.Literal("mode"), t.Literal("base")]),   // Add 'base' as an option
       }),
       query: t.Object({ addresses: t.Optional(t.String()) }),
     }
@@ -49,18 +53,22 @@ new Elysia()
     async ({ query, params }) => {
       console.log("params: ", params);
       console.log("query: ", query);
+
+      // If `addresses` is undefined, pass an empty array
       const addresses = query.addresses?.split(",");
-      const blockNumber = params.blockNumber;
-      const holders = await getBorrowers(params.asset, blockNumber, addresses);
+      const blockNumber = BigInt(params.blockNumber);
+
+      // Pass chain to getBorrowers function
+      const borrowers = await getBorrowers(params.asset, blockNumber, addresses);
       return {
-        Result: holders,
+        Result: borrowers,
       };
     },
     {
       params: t.Object({
         asset: t.Union([t.Literal("weeth"), t.Literal("wrseth")]),
         blockNumber: t.Numeric(),
-        chain: t.Literal("mode"),
+        chain: t.Union([t.Literal("mode"), t.Literal("base")]),  // Add 'base' as an option
       }),
       query: t.Object({ addresses: t.Optional(t.String()) }),
     }

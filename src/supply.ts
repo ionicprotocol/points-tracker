@@ -1,14 +1,17 @@
 import { http, type Address } from "viem"; 
 import { cTokenAbi } from "./abi/cTokenAbi"; 
 import { createConfig, readContracts } from "@wagmi/core"; 
-import { mode } from "@wagmi/core/chains"; 
+import { mode, base } from "@wagmi/core/chains"; // Import the base chain configuration
 
+// Configuration for both mode and base chains
 export const config = createConfig({
-  chains: [mode],
+  chains: [mode, base], 
   transports: {
     [mode.id]: http(), 
+    [base.id]: http(), 
   },
 });
+
 type Holder = { address: string; effective_balance: string | undefined };
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const fetchWithRetries = async (url: string, retries = 3, backoff = 1000): Promise<any> => {
@@ -29,22 +32,38 @@ const fetchWithRetries = async (url: string, retries = 3, backoff = 1000): Promi
     }
   }
 };
+
+
+// Helper function to get the API base URL for each chain
+const getApiUrl = (chain: string, asset: Address) => {
+  console.log("address",asset)
+  switch (chain) {
+    case "mode":
+      return `https://explorer.mode.network/api/v2/tokens/${asset}/holders`;
+    case "base":
+      return `https://api.basescan.org/api/v2/token/${asset}/holders`;
+    default:
+      throw new Error("Unsupported chain");
+  }
+};
+
 export const getBalance = async (
   asset: Address, 
   blockNumber: bigint, 
+  chain: string,    // Added `chain` parameter to handle multiple chains
   addresses: string[] = [] 
 ): Promise<Holder[]> => {
   const threshold = BigInt("100000000000000"); // Threshold balance in smallest unit (wei)
   
   if (addresses.length === 0) {
-    let nextPageParams;
+    let nextPageParams;// Use a generic type for pagination params
     while (true) {
-      let url = `https://explorer.mode.network/api/v2/tokens/${asset}/holders`;
+      let url = getApiUrl(chain, asset); // Use chain-specific API URL
       if (nextPageParams) {
         url += `?${Object.entries(nextPageParams)
           .map(([key, value]) => `${key}=${value}`)
           .join("&")}`;
-      }   
+      }  
       try {
         const json = await fetchWithRetries(url);
         const _addresses = json.items.map((holder: any) => holder.address.hash);
@@ -95,3 +114,4 @@ export const getBalance = async (
     return []; 
   }
 };
+
