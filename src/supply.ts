@@ -1,19 +1,34 @@
-import { http, type Address } from "viem"; 
-import { cTokenAbi } from "./abi/cTokenAbi"; 
-import { createConfig, readContracts } from "@wagmi/core"; 
-import { mode, base } from "@wagmi/core/chains"; // Import the base chain configuration
+import { http, type Address } from "viem";
+import { cTokenAbi } from "./abi/cTokenAbi";
+import { createConfig, readContracts } from "@wagmi/core";
+import { mode, base } from "@wagmi/core/chains"; // Import the mode and base chain configuration
 
-// Configuration for both mode and base chains
-export const config = createConfig({
-  chains: [mode, base], 
-  transports: {
-    [mode.id]: http(), 
-    [base.id]: http(), 
-  },
-});
+// Dynamic configuration based on the chain
+const getDynamicConfig = (chain: string) => {
+  switch (chain) {
+    case "mode":
+      return createConfig({
+        chains: [mode],
+        transports: {
+          [mode.id]: http(),
+        },
+      });
+    case "base":
+      return createConfig({
+        chains: [base],
+        transports: {
+          [base.id]: http(),
+        },
+      });
+    default:
+      throw new Error("Unsupported chain");
+  }
+};
 
 type Holder = { address: string; effective_balance: string | undefined };
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Fetch data with retries and exponential backoff
 const fetchWithRetries = async (url: string, retries = 3, backoff = 1000): Promise<any> => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -33,37 +48,40 @@ const fetchWithRetries = async (url: string, retries = 3, backoff = 1000): Promi
   }
 };
 
-
 // Helper function to get the API base URL for each chain
 const getApiUrl = (chain: string, asset: Address) => {
-  console.log("address",asset)
+  console.log("address", asset);
   switch (chain) {
     case "mode":
       return `https://explorer.mode.network/api/v2/tokens/${asset}/holders`;
     case "base":
-      return `https://api.basescan.org/api/v2/token/${asset}/holders`;
+      return `https://base.blockscout.com/api/v2/tokens/${asset}/holders`;
     default:
       throw new Error("Unsupported chain");
   }
 };
 
+// Main function to get balance of holders
 export const getBalance = async (
-  asset: Address, 
-  blockNumber: bigint, 
-  chain: string,    // Added `chain` parameter to handle multiple chains
-  addresses: string[] = [] 
+  asset: Address,
+  blockNumber: bigint,
+  chain: string, // Added `chain` parameter to handle multiple chains
+  addresses: string[] = []
 ): Promise<Holder[]> => {
   const threshold = BigInt("100000000000000"); // Threshold balance in smallest unit (wei)
-  
+
+  // Get dynamic config based on chain
+  const config = getDynamicConfig(chain); // Dynamically choose the config
+
   if (addresses.length === 0) {
-    let nextPageParams;// Use a generic type for pagination params
+    let nextPageParams; // Use a generic type for pagination params
     while (true) {
       let url = getApiUrl(chain, asset); // Use chain-specific API URL
       if (nextPageParams) {
         url += `?${Object.entries(nextPageParams)
           .map(([key, value]) => `${key}=${value}`)
           .join("&")}`;
-      }  
+      }
       try {
         const json = await fetchWithRetries(url);
         const _addresses = json.items.map((holder: any) => holder.address.hash);
@@ -80,7 +98,7 @@ export const getBalance = async (
       }
     }
   }
-  
+
   let totalBalance = 0n; // Initialize total balance as a BigInt
   try {
     const result = await readContracts(config, {
@@ -95,7 +113,7 @@ export const getBalance = async (
     const holders = result.flatMap((res, index) => {
       const balance = res.result as bigint;
       if (res.status !== "failure") {
-        totalBalance += balance; 
+        totalBalance += balance;
       } else {
         console.log("Error fetching balance:", res.error);
         return { address: addresses[index], effective_balance: undefined };
@@ -104,14 +122,13 @@ export const getBalance = async (
     }).filter((holder) => {
       if (holder.effective_balance) {
         const effectiveBalance = BigInt(holder.effective_balance);
-        return effectiveBalance >= threshold; 
+        return effectiveBalance >= threshold;
       }
       return false;
     });
-    return holders as Holder[]; 
+    return holders as Holder[];
   } catch (error) {
     console.error("Error reading contracts:", error);
-    return []; 
+    return [];
   }
 };
-
