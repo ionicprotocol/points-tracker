@@ -19,6 +19,11 @@ const getAssetAddresses = (chain: string) => {
       ionwrsETH = "0x49950319aBE7CE5c3A6C90698381b45989C99b46"; // Same as in mode
       break;
     }
+    case "optimism": {
+      ionweETH = "0xC741af01903f39841228dE21d9DdD31Ba604Fec5"; // optimism chain address for ionweETH
+      ionwrsETH = "0x49950319aBE7CE5c3A6C90698381b45989C99b46"; // Same as in mode
+      break;
+    }
     default: {
       throw new Error("Unsupported chain");
     }
@@ -63,7 +68,7 @@ new Elysia()
       params: t.Object({
         asset: t.Union([t.Literal("weeth"), t.Literal("wrseth")]),
         blockNumber: t.Numeric(),
-        chain: t.Union([t.Literal("mode"), t.Literal("base")]),   // Add 'base' as an option
+        chain: t.Union([t.Literal("mode"), t.Literal("base"), t.Literal("optimism")]),   // Add 'base' as an option
       }),
       query: t.Object({ addresses: t.Optional(t.String()) }),
     }
@@ -88,7 +93,7 @@ new Elysia()
       params: t.Object({
         asset: t.Union([t.Literal("weeth"), t.Literal("wrseth")]),
         blockNumber: t.Numeric(),
-        chain: t.Union([t.Literal("mode"), t.Literal("base")]),  // Add 'base' as an option
+        chain: t.Union([t.Literal("mode"), t.Literal("base"), t.Literal("optimism")]),  // Add 'base' as an option
       }),
       query: t.Object({ addresses: t.Optional(t.String()) }),
     }

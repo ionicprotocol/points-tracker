@@ -1,7 +1,7 @@
 import { http, type Address } from "viem";
 import { cTokenAbi } from "./abi/cTokenAbi";
 import { createConfig, readContracts } from "@wagmi/core";
-import { mode, base } from "@wagmi/core/chains"; // Import the mode and base chain configuration
+import { mode, base, optimism } from "@wagmi/core/chains"; // Import the mode and base chain configuration
 
 // Dynamic configuration based on the chain
 const getDynamicConfig = (chain: string) => {
@@ -20,6 +20,13 @@ const getDynamicConfig = (chain: string) => {
           [base.id]: http(),
         },
       });
+      case "optimism":
+        return createConfig({
+          chains: [optimism],
+          transports: {
+            [optimism.id]: http(),
+          },
+        });
     default:
       throw new Error("Unsupported chain");
   }
@@ -56,6 +63,8 @@ const getApiUrl = (chain: string, asset: Address) => {
       return `https://explorer.mode.network/api/v2/tokens/${asset}/holders`;
     case "base":
       return `https://base.blockscout.com/api/v2/tokens/${asset}/holders`;
+    case "optimism":
+      return `https://optimism.blockscout.com/api/v2/tokens/${asset}/holders`;
     default:
       throw new Error("Unsupported chain");
   }
